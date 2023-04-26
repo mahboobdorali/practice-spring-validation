@@ -1,12 +1,15 @@
 package com.example.practivespring;
 
-import jakarta.servlet.Servlet;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cglib.core.Local;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -21,11 +24,18 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @SpringBootApplication
 @RestController
 
 public class PracticeSpringApplication {
+    //for read files.properties
+    private final MessageSource messageSource;
+
+    public PracticeSpringApplication(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
 
     public static void main(String[] args) {
 
@@ -34,6 +44,7 @@ public class PracticeSpringApplication {
 
     private static List<UserDto> userDtoList = new ArrayList<>();
 
+    //for give link to client after register
     @PostMapping("/user")
     public ResponseEntity<UserDto> testPost1(@Valid @RequestBody UserDto userDto) {
         userDtoList.add(userDto);
@@ -47,11 +58,12 @@ public class PracticeSpringApplication {
         return userDtoList.stream().filter(user -> user.username.equals(username)).findFirst().get();
     }
 
-    /* @GetMapping("/test")
-     public JsonMessage test() {
+ /*   @GetMapping("/test")
+    public JsonMessage test() {
 
-         return new JsonMessage("ok");
-     }*/
+        return new JsonMessage("ok");
+    }*/
+
     //request param
     @GetMapping("/test")
     public JsonMessage test(@RequestParam(required = false) String username) {
@@ -71,6 +83,54 @@ public class PracticeSpringApplication {
     public String testPost(@RequestBody UserDto userDto) {
         return userDto.toString();
     }
+
+    //for select language about message
+    @GetMapping("/hello-world")
+    public String helloWorld() {
+        Locale local = LocaleContextHolder.getLocale();
+        return messageSource.getMessage("good.morning.massage", null, ":/", local);
+    }
+
+    //control version
+    @GetMapping("/v1/hello-word")
+    public String helloWord() {
+        return "hello";
+    }
+
+    @GetMapping("/v2/hello-word")
+    public JsonMessage helloWord2() {
+        return new JsonMessage("hello word");
+    }
+
+    @GetMapping(value = "/hello-word", params = "version1")
+    public String helloWord3() {
+        return "hello";
+    }
+
+    @GetMapping(value = "/hello-word", params = "version2")
+    public JsonMessage helloWord4() {
+        return new JsonMessage("hello word");
+    }
+
+    @GetMapping(value = "/hello-word", headers = "mahboob-version=1")
+    public String helloWord5() {
+        return "hello";
+    }
+
+    @GetMapping(value = "/hello-word", headers = "mahboob-version=2")
+    public JsonMessage helloWord6() {
+        return new JsonMessage("hello word");
+    }
+
+    @GetMapping(value = "/hello-word", produces = "application/naser")
+    public String helloWord7() {
+        return "hello";
+    }
+
+    @GetMapping(value = "/hello-word", produces = "application/mahboob")
+    public JsonMessage helloWord8() {
+        return new JsonMessage("hello word");
+    }
 }
 
 @Getter
@@ -79,7 +139,7 @@ public class PracticeSpringApplication {
 @AllArgsConstructor
 @NoArgsConstructor
 class UserDto {
-    @Size(min = 2,message = "enter correct name :)")
+    @Size(min = 2, message = "enter correct name :)")
     String firstname;
 
     String lastname;
@@ -100,18 +160,19 @@ class JsonMessage {
 
 @ControllerAdvice
 class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-         //    @ExceptionHandler(UserNotFoundException.class)
-         //    public ResponseEntity<ErrorDetails> userNotFoundExceptionHandler(UserNotFoundException e) {
-         //        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), e.getMessage(), 404);
-         //        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
+    //    @ExceptionHandler(UserNotFoundException.class)
+    //    public ResponseEntity<ErrorDetails> userNotFoundExceptionHandler(UserNotFoundException e) {
+    //        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), e.getMessage(), 404);
+    //        return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
-      ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
+        ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(),
                 "Total Errors:" + ex.getErrorCount() + " First Error:" + ex.getFieldError().getDefaultMessage(), 400);
-    return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
 }
+
 //برای اینکه یه بیغامی بتونیم بسازیم بفرستیم سمت بک اند یه کلاس میسازیم
 @Setter
 @AllArgsConstructor

@@ -7,9 +7,10 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cglib.core.Local;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -122,15 +123,44 @@ public class PracticeSpringApplication {
         return new JsonMessage("hello word");
     }
 
-    @GetMapping(value = "/hello-word", produces = "application/naser")
+/*
+    @GetMapping(value = "/hello-word", produces = "application/application/naser.app.v1+json")
     public String helloWord7() {
         return "hello";
     }
+*/
 
-    @GetMapping(value = "/hello-word", produces = "application/mahboob")
+    @GetMapping(value = "/hello-word", produces = "application/ali.app.v2+json")
     public JsonMessage helloWord8() {
         return new JsonMessage("hello word");
     }
+
+    //HATEOAS
+    @GetMapping(value = "/hello-hateoas-non-static")
+    public EntityModel<JsonMessage> helloHateoas1() {
+        JsonMessage jsonMessage=new JsonMessage("heeeeelloooooo:)");
+        EntityModel<JsonMessage>jsonMessageEntityModel=EntityModel.of(jsonMessage);                                 //به خودش هم میتونه لینک بده
+        WebMvcLinkBuilder webMvcLinkBuilder1=WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).helloHateoas1());
+        WebMvcLinkBuilder webMvcLinkBuilder2=WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).helloHateoas2());
+        //مینویسیم this چون کنترلر توی همین کلاس داریم حالا اگر کنترلر توی یه کلاس دیگ بود به صورت دیگ عمل میکنیم :
+        WebMvcLinkBuilder webMvcLinkBuilder3=WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).helloHateoas3());
+        WebMvcLinkBuilder webMvcLinkBuilderForOtherController=WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(Controller.class).hateoasInOtherClass());
+        //withRel is link name where come before href of link
+        jsonMessageEntityModel.add(webMvcLinkBuilder1.withRel("link hateoas1"));
+        jsonMessageEntityModel.add(webMvcLinkBuilder2.withRel("link hateoas2"));
+        jsonMessageEntityModel.add(webMvcLinkBuilder3.withRel("link hateoas3"));
+        jsonMessageEntityModel.add(webMvcLinkBuilderForOtherController.withRel("link hateoas4"));
+        return jsonMessageEntityModel;
+    }
+    @GetMapping(value = "/hello-hateoas2")
+    public JsonMessage helloHateoas2() {
+        return new JsonMessage("hello hateoas**");
+    }
+    @GetMapping(value = "/hello-hateoas3")
+    public JsonMessage helloHateoas3() {
+        return new JsonMessage("hello hateoas***");
+    }
+
 }
 
 @Getter
